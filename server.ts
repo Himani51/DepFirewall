@@ -16,14 +16,25 @@ interface ScanResult {
   file: string;
   issues: {
     line: number;
+    ruleId: string;
     type: "hallucination" | "suspicious" | "security";
     message: string;
     severity: "high" | "medium" | "low";
     snippet: string;
+    canAutoFix: boolean;
   }[];
 }
 
+async function loadConfig() {
+  const configPath = path.join(process.cwd(), ".depfirewallrc.json");
+  if (await fs.pathExists(configPath)) {
+    try { return await fs.readJson(configPath); } catch (e) {}
+  }
+  return { rules: {} };
+}
+
 async function scanCodebase(dir: string): Promise<ScanResult[]> {
+  const config = await loadConfig();
   const files = await glob("**/*.{ts,tsx,js}", { 
     cwd: dir, 
     ignore: ["node_modules/**", "dist/**", ".git/**"] 
@@ -41,24 +52,36 @@ async function scanCodebase(dir: string): Promise<ScanResult[]> {
       fileContent: content
     };
 
+    let skipNextLine = false;
+
     lines.forEach((lineText, index) => {
+      // INLINE SUPPRESSION LOGIC
+      if (lineText.includes("depfirewall-disable-next-line") || lineText.includes("depfirewall-ignore-next-line")) {
+        skipNextLine = true;
+        return;
+      }
+      if (skipNextLine || lineText.includes("depfirewall-ignore")) {
+        skipNextLine = false;
+        return;
+      }
+
       RULES.forEach(rule => {
-        // Outdated Dependencies is validated externally by the CLI currently
         if (rule.name === "Outdated Dependency") return;
+        if (config.rules && config.rules[rule.name] === "off") return;
 
         if (rule.pattern.test(lineText)) {
-          // If a validator exists, run it
           if (rule.validator && !rule.validator(lineText, ctx)) return;
 
           issues.push({
             line: index + 1,
+            ruleId: rule.name,
             type: rule.type as any,
             message: rule.message,
             severity: rule.severity as any,
-            snippet: lineText.trim()
+            snippet: lineText.trim(),
+            canAutoFix: !!rule.autofix
           });
         }
-        // Reset regex state for global patterns
         rule.pattern.lastIndex = 0;
       });
     });
@@ -77,6 +100,48 @@ app.get("/api/scan", async (req, res) => {
   try {
     const results = await scanCodebase(process.cwd());
     res.json({ success: true, results });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+app.post("/api/fix", async (req, res) => {
+  try {
+    const { file, ruleId, line } = req.body;
+    const rule = RULES.find(r => r.name === ruleId);
+    
+    if (!rule || !rule.autofix) {
+      res.status(400).json({ success: false, error: "Rule not found or does not support autofix." });
+      return;
+    }
+
+    const filePath = path.join(process.cwd(), file);
+    const content = await fs.readFile(filePath, "utf-8");
+    const lines = content.split("\n");
+    
+    // Apply fix
+    lines[line - 1] = rule.autofix(lines[line - 1]);
+    
+    await fs.writeFile(filePath, lines.join("\n"));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+app.post("/api/ignore", async (req, res) => {
+  try {
+    const { file, line } = req.body;
+    
+    const filePath = path.join(process.cwd(), file);
+    const content = await fs.readFile(filePath, "utf-8");
+    const lines = content.split("\n");
+    
+    // Insert suppression comment directly above the offending line
+    lines.splice(line - 1, 0, "// depfirewall-disable-next-line");
+    
+    await fs.writeFile(filePath, lines.join("\n"));
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }

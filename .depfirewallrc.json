@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "Unused Import": "warn",
+    "Debug Log Detector": "off"
+  }
+}

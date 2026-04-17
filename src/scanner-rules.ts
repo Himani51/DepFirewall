@@ -5,6 +5,7 @@ export interface ScanRule {
   severity: "high" | "medium" | "low";
   type: "hallucination" | "suspicious" | "security";
   validator?: (line: string, ctx?: any) => boolean;
+  autofix?: (line: string) => string;
 }
 
 export const RULES: ScanRule[] = [
@@ -46,7 +47,8 @@ export const RULES: ScanRule[] = [
     pattern: /(As an AI language model,|I cannot fulfill this request|Here is the code you requested:)/gi,
     message: "AI conversational output leaked into source code.",
     severity: "high",
-    type: "suspicious"
+    type: "suspicious",
+    autofix: (line: string) => line.replace(/(?:^\s*(?:\/\/|\/\*|<!--)?\s*)(As an AI language model,|I cannot fulfill this request|Here is the code you requested:)(?:\s*(?:\*\/|-->)?)(?:\r?\n)?/gi, '')
   },
   {
     name: "Hardcoded Secrets",
@@ -198,7 +200,8 @@ export const RULES: ScanRule[] = [
     pattern: /^\s*```(?:javascript|typescript|js|ts|tsx|jsx)?\s*$/gmi,
     message: "Syntax Error Risk: AI left Markdown code blocks (```) inside a source code file.",
     severity: "high",
-    type: "suspicious"
+    type: "suspicious",
+    autofix: (line: string) => '' // Strips the line completely
   },
   {
     name: "Insecure External HTTP Request",
@@ -358,6 +361,7 @@ export const RULES: ScanRule[] = [
     message: "Unused import statement detected. Consider removing it for cleaner code.",
     severity: "low",
     type: "suspicious",
+    autofix: (line: string) => '', // Removes the unused line completely
     validator: (line: string, ctx: any) => {
       if (!ctx || !ctx.fileContent) return false;
       const match = line.match(/^import\s+(?:\{([^}]+)\}|(\w+))/);

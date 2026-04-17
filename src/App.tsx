@@ -356,7 +356,7 @@ function LandingView({ onLaunch, theme, toggleTheme }: { onLaunch: () => void; t
       {/* Institutional Footer */}
       <footer className="h-24 flex items-center justify-between px-12 lg:px-24 text-[10px] font-mono text-brand-text-dim uppercase tracking-widest opacity-50 shrink-0">
         <div className="flex gap-10">
-          <span>&copy; 2025 Himani Vaghani. Open Source under MIT License.</span>
+          <span>&copy; {new Date().getFullYear()} Himani Vaghani. Open Source under MIT License.</span>
           <span className="hidden sm:inline">Secure Neural Architecture</span>
         </div>
         <div className="flex gap-10">
@@ -475,6 +475,24 @@ function DashboardView({ results, loading, scannedAt, runScan, theme, toggleThem
   const totalIssues = results.reduce((acc: number, curr: any) => acc + curr.issues.length, 0);
   const [copied, setCopied] = useState(false);
 
+  const handleFix = async (file: string, ruleId: string, line: number) => {
+    try {
+      await axios.post('/api/fix', { file, ruleId, line });
+      runScan(); // Refresh
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
+  const handleIgnore = async (file: string, line: number) => {
+    try {
+      await axios.post('/api/ignore', { file, line });
+      runScan(); // Refresh
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -549,7 +567,7 @@ function DashboardView({ results, loading, scannedAt, runScan, theme, toggleThem
               <div className="space-y-1">
                 <DiagnosticItem label="Core Version" value="1.4.2" status="stable" />
                 <DiagnosticItem label="Heuristic Tier" value="L5 Full" />
-                <DiagnosticItem label="Pattern Set" value="2025.Q3" />
+                <DiagnosticItem label="Pattern Set" value={`${new Date().getFullYear()}.Q2`} />
                 <DiagnosticItem label="Latency" value="14ms" status="optimal" />
               </div>
             </section>
@@ -604,12 +622,12 @@ function DashboardView({ results, loading, scannedAt, runScan, theme, toggleThem
           <div className="flex-1 p-6 overflow-hidden flex flex-col">
             <div className="flex-1 bg-brand-surface border border-brand-line rounded-lg flex flex-col overflow-hidden shadow-sm outline outline-4 outline-brand-text-main/5">
               {/* Table Header */}
-              <div className="grid grid-cols-[80px_1.5fr_1fr_2fr_100px] px-8 py-3.5 border-b border-brand-line bg-brand-text-main/[0.03] font-bold text-[10px] uppercase tracking-[2px] text-brand-text-dim">
+              <div className="grid grid-cols-[80px_1.5fr_1fr_2fr_120px] px-8 py-3.5 border-b border-brand-line bg-brand-text-main/[0.03] font-bold text-[10px] uppercase tracking-[2px] text-brand-text-dim">
                 <span>UID</span>
                 <span>Artifact Path</span>
                 <span>Classification</span>
                 <span>Security Diagnostic</span>
-                <span className="text-right">Offset</span>
+                <span className="text-right">Actions</span>
               </div>
               
               {/* Table Content */}
@@ -647,17 +665,17 @@ function DashboardView({ results, loading, scannedAt, runScan, theme, toggleThem
                       <button onClick={runScan} className="mt-8 text-[11px] font-bold uppercase tracking-widest text-brand-accent border border-brand-accent/30 px-6 py-2 rounded-full hover:bg-brand-accent/5 transition-all">Manual Recalibration</button>
                     </motion.div>
                   ) : (
-                    results.flatMap((res, resIdx) => 
-                      res.issues.map((issue, issueIdx) => (
+                    results.flatMap((res: any, resIdx: number) => 
+                      res.issues.map((issue: any, issueIdx: number) => (
                         <motion.div 
                           key={`${res.file}-${issueIdx}`}
                           initial={{ opacity: 0, x: -5 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: (resIdx + issueIdx) * 0.02 }}
-                          className="grid grid-cols-[80px_1.5fr_1fr_2fr_100px] px-8 py-3 items-center hover:bg-brand-text-main/[0.02] transition-colors group cursor-default"
+                          className="grid grid-cols-[80px_1.5fr_1fr_2fr_120px] px-8 py-3 items-center hover:bg-brand-text-main/[0.02] transition-colors group cursor-default"
                         >
                           <span className="opacity-20 text-[9px]">RES-{issue.line.toString().padStart(4, '0')}</span>
-                          <span className="truncate pr-4 text-brand-text-main font-bold tracking-tight">{res.file}</span>
+                          <span className="truncate pr-4 text-brand-text-main font-bold tracking-tight">{res.file}:{issue.line}</span>
                           <div className="flex">
                             <span className={`text-[9px] px-2 py-0.5 rounded border font-bold uppercase tracking-widest ${
                               issue.severity === 'high' ? 'bg-brand-warning/10 border-brand-warning/30 text-brand-warning' : 'bg-brand-accent/10 border-brand-accent/30 text-brand-accent'
@@ -665,8 +683,27 @@ function DashboardView({ results, loading, scannedAt, runScan, theme, toggleThem
                               {issue.type}
                             </span>
                           </div>
-                          <span className="text-brand-text-dim truncate pr-6 text-[10px] leading-relaxed italic">{issue.message}</span>
-                          <span className="text-right tabular-nums font-bold text-brand-text-main bg-brand-text-main/5 px-2 py-0.5 rounded ml-auto">LN:{issue.line}</span>
+                          <span className="text-brand-text-dim truncate pr-6 text-[10px] leading-relaxed flex items-center gap-2">
+                             {issue.canAutoFix && <Zap className="w-3 h-3 text-brand-success" />}
+                             <span className="italic">{issue.message}</span>
+                          </span>
+                          <div className="flex items-center justify-end gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
+                             <button
+                               onClick={() => handleIgnore(res.file, issue.line)}
+                               title="Suppress inline"
+                               className="text-[9px] bg-brand-surface border border-brand-line hover:border-brand-text-main px-2 py-1 rounded transition-colors"
+                             >
+                               IGN
+                             </button>
+                             <button 
+                               onClick={() => handleFix(res.file, issue.ruleId, issue.line)}
+                               disabled={!issue.canAutoFix}
+                               title={issue.canAutoFix ? "Auto-Fix Issue" : "No Auto-Fix Available"}
+                               className={`text-[9px] border px-2 py-1 rounded transition-colors ${issue.canAutoFix ? 'bg-brand-success/10 border-brand-success text-brand-success hover:bg-brand-success hover:text-white' : 'bg-brand-surface border-brand-line text-brand-text-dim opacity-50 cursor-not-allowed'}`}
+                             >
+                               FIX
+                             </button>
+                          </div>
                         </motion.div>
                       ))
                     )

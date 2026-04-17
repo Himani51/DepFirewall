@@ -58,7 +58,14 @@ The Dashboard provides a beautiful, high-density HUD to parse all detected viola
 
 You can run the DepFirewall scanner natively in the command line for beautiful terminal readouts.
 
-#### Scan the Current Working Directory:
+If installed globally (or running inside an NPM repository via `npx`):
+```bash
+npx depfirewall
+# or
+npx depfirewall --fix
+```
+
+#### Scan the Current Working Directory (Local Run):
 ```bash
 npm run scan
 ```
@@ -90,6 +97,45 @@ If you want to audit a different codebase using this engine without installing i
 ```bash
 npx tsx ~/tools/depfirewall/scripts/cli-scan.ts
 ```
+
+## ✨ Automated Auto-Fix & Inline Configurations
+
+DepFirewall `v1.0` operates just like established enterprise linters (like ESLint).
+
+### 1. Auto-Fix Capability
+If an issue has a known safe resolution (like stripping out AI conversation blocks or deleting unused imports), you can let DepFirewall fix it for you automatically!
+- **In the UI Dashboard:** Click the green **FIX** button on the offending row.
+- **In the CLI:** Run `npx depfirewall --fix` (or `npm run scan -- --fix`) to repair the whole codebase at once!
+
+### 2. Inline Suppressions
+If you intentionally wrote code that triggers the firewall, you can bypass the detection directly in your files:
+```typescript
+// depfirewall-disable-next-line
+const myFakeLibrary = require('ai-super-agent');
+
+// depfirewall-ignore
+import { MagicHook } from "react";
+```
+*You can apply these suppressions directly from the Web Dashboard using the `IGN` (Ignore) button.*
+
+### 3. Global `.depfirewallrc.json` Config
+Create a `.depfirewallrc.json` file in your root directory to turn off rules entirely:
+```json
+{
+  "rules": {
+    "Debug Log Detector": "off",
+    "Express Missing Rate Limiting": "off"
+  }
+}
+```
+
+---
+
+## 🔗 CI/CD & GitHub Actions (SARIF Output)
+
+DepFirewall is ready for enterprise pipelines out of the box. By using `--format=sarif`, it outputs standardized JSON objects that GitHub Native Security interprets immediately as inline PR review comments.
+
+Make sure `.github/workflows/depfirewall.yml` exists in your repository, and it will run on every branch automatically, blocking merged PRs that contain hallucinations or vulnerabilities.
 
 ---
 
