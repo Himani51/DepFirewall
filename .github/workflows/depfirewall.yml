@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# REQUIRED: Grant the GitHub Action permission to upload security events
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   static-analysis:
     runs-on: ubuntu-latest
@@ -32,7 +37,7 @@ jobs:
       continue-on-error: true
 
     - name: Upload SARIF to GitHub Security Tab
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         # This makes the alerts appear in the "Security" tab and inline on Pull Requests
         sarif_file: depfirewall-results.sarif
