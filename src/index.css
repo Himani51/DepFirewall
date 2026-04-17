@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Instrument Serif", serif;
+  
+  --color-brand-bg: var(--bg);
+  --color-brand-surface: var(--surface);
+  --color-brand-accent: var(--accent);
+  --color-brand-warning: var(--warning);
+  --color-brand-success: var(--success);
+  --color-brand-text-main: var(--text-main);
+  --color-brand-text-dim: var(--text-dim);
+  --color-brand-line: var(--line);
+}
+
+:root {
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --accent: #0F172A; /* Professional Deep Blue/Slate */
+  --warning: #EF4444;
+  --success: #10B981;
+  --text-main: #1E293B;
+  --text-dim: #64748B;
+  --line: #E2E8F0;
+}
+
+.dark {
+  --bg: #0F172A;
+  --surface: #1E293B;
+  --accent: #38BDF8; /* Sky Blue Accent */
+  --warning: #F87171;
+  --success: #34D399;
+  --text-main: #F1F5F9;
+  --text-dim: #94A3B8;
+  --line: #334155;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text-main font-sans antialiased selection:bg-brand-accent/30 transition-colors duration-500;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.9); }
+}
+
+.animate-pulse-fast {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

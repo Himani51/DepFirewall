@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dependency Firewall</title>
+    <meta name="author" content="Himani Vaghani" />
+    <script>
+      (function() {
+        try {
+          var orig = Object.getOwnPropertyDescriptor(window, 'fetch') || Object.getOwnPropertyDescriptor(Window.prototype, 'fetch');
+          if (orig && !orig.set) {
+            Object.defineProperty(window, 'fetch', {
+              get: orig.get || function() { return orig.value; },
+              set: function() { console.warn('Ignored fetch polyfill attempt to prevent crash'); },
+              configurable: true,
+              enumerable: orig.enumerable
+            });
+          }
+        } catch(e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

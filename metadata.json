@@ -1,0 +1,6 @@
+{
+  "name": "Dependency Firewall",
+  "description": "A lightweight static analysis tool to detect AI hallucinations and suspicious patterns in codebases, built by Himani Vaghani.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
