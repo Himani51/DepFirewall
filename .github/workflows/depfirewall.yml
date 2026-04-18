@@ -30,15 +30,21 @@ jobs:
       run: npm ci
 
     - name: Execute DepFirewall Scan (SARIF Format)
-      # We use npx to run the scanner and output standard SARIF 
-      # continue-on-error ensures that the action doesn't immediately crash if it finds a vulnerability,
+      # We use local tsx to run the scanner and output standard SARIF 
+      # "|| true" ensures that finding vulnerabilities doesn't crash the bash step itself,
       # allowing the SARIF uploader step to grab the file and annotate the PR!
-      run: npx depfirewall --format=sarif > depfirewall-results.sarif
-      continue-on-error: true
+      run: npx tsx scripts/cli-scan.ts --format=sarif > depfirewall-results.sarif || true
+
+    - name: Upload SARIF Artifact (Fallback for Private Repos)
+      uses: actions/upload-artifact@v4
+      with:
+        name: DepFirewall SARIF Report
+        path: depfirewall-results.sarif
 
     - name: Upload SARIF to GitHub Security Tab
       uses: github/codeql-action/upload-sarif@v4
+      # This step requires GitHub Advanced Security on private repos. It is free for public repos.
+      continue-on-error: true
       with:
-        # This makes the alerts appear in the "Security" tab and inline on Pull Requests
         sarif_file: depfirewall-results.sarif
         category: DepFirewall Validation

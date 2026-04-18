@@ -18,7 +18,8 @@ import {
   Lock,
   Eye,
   Sun,
-  Moon
+  Moon,
+  Fingerprint
 } from "lucide-react";
 import { motion, AnimatePresence, useScroll, useTransform } from "motion/react";
 
@@ -33,6 +34,19 @@ interface Issue {
 interface ScanResult {
   file: string;
   issues: Issue[];
+}
+
+export function BrandLogo({ className = "w-6 h-6", strokeWidth = 2 }: { className?: string, strokeWidth?: number | string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="M12 8L8 14" />
+      <path d="M12 8L16 14" />
+      <circle cx="12" cy="8" r="1.5" fill="currentColor" />
+      <circle cx="8" cy="14" r="1.5" fill="currentColor" />
+      <circle cx="16" cy="14" r="1.5" fill="currentColor" />
+    </svg>
+  );
 }
 
 export default function App() {
@@ -146,7 +160,7 @@ function IntroView({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
           >
-            <ShieldAlert className="w-12 h-12 text-brand-accent drop-shadow-[0_0_15px_rgba(var(--accent-rgb),0.5)]" />
+            <BrandLogo className="w-12 h-12 text-brand-accent drop-shadow-[0_0_15px_rgba(var(--accent-rgb),0.5)]" />
           </motion.div>
         </div>
         
@@ -224,7 +238,7 @@ function LandingView({ onLaunch, theme, toggleTheme }: { onLaunch: () => void; t
               transition={{ delay: 0.5, type: "spring", damping: 12 }}
               className="absolute inset-0 bg-white/20"
             />
-            <ShieldAlert className="w-3.5 h-3.5 relative z-10" />
+            <BrandLogo className="w-3.5 h-3.5 relative z-10" strokeWidth={2.5} />
           </div>
           <span className="font-sans font-bold text-sm tracking-tight leading-none lowercase">Dependency Firewall <span className="text-brand-text-dim font-light italic">Lite</span></span>
         </motion.div>
@@ -370,80 +384,92 @@ function LandingView({ onLaunch, theme, toggleTheme }: { onLaunch: () => void; t
 
 function AIBrainAnimation() {
   return (
-    <div className="relative w-full aspect-square max-w-[400px] mx-auto flex items-center justify-center">
-      {/* Dynamic Rings */}
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-0 border border-brand-accent/20 rounded-full"
-      />
-      <motion.div
-        animate={{ rotate: -360 }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-8 border border-brand-success/20 rounded-full"
-      />
-      <motion.div
-        animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-20 border border-brand-accent/10 rounded-full border-dashed"
-      />
+    <div className="relative w-full aspect-[4/3] max-w-[440px] mx-auto flex items-center justify-center font-mono" style={{ perspective: "1200px" }}>
       
-      <div className="relative z-10 flex items-center justify-center">
-        <Cpu className="w-32 h-32 text-brand-accent opacity-20 absolute blur-3xl" />
-        <motion.div
-          animate={{ 
-            scale: [1, 1.05, 1],
-            opacity: [0.9, 1, 0.9]
-          }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="relative flex items-center justify-center"
-        >
-          <svg width="240" height="240" viewBox="0 0 240 240" fill="none" className="overflow-visible">
-            <motion.circle 
-              cx="120" 
-              cy="120" 
-              r="80" 
-              stroke="var(--accent)" 
-              strokeWidth="0.5" 
-              strokeDasharray="4 4"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            />
-            <motion.path 
-              d="M120 60C86.8629 60 60 86.8629 60 120C60 153.137 86.8629 180 120 180C153.137 180 180 153.137 180 120C180 86.8629 153.137 60 120 60Z" 
-              stroke="var(--success)" 
-              strokeWidth="2"
-              animate={{ strokeDashoffset: [0, 100] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-              strokeDasharray="20 10"
-            />
-            <circle cx="120" cy="120" r="30" fill="var(--accent)" fillOpacity="0.1" />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-             <ShieldAlert className="w-12 h-12 text-brand-accent drop-shadow-[0_0_10px_rgba(var(--accent-rgb),0.5)]" />
+      {/* Floating Code Editor Backing */}
+      <motion.div
+        animate={{ rotateX: [5, -5, 5], rotateY: [-5, 5, -5] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        className="w-full h-[85%] relative bg-brand-surface border border-brand-line shadow-2xl rounded-xl overflow-hidden flex flex-col z-10"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        {/* Editor Header */}
+        <div className="h-10 border-b border-brand-line bg-brand-bg flex items-center px-4 gap-2 shrink-0">
+          <div className="w-2.5 h-2.5 rounded-full bg-brand-warning/80" />
+          <div className="w-2.5 h-2.5 rounded-full bg-orange-400/80" />
+          <div className="w-2.5 h-2.5 rounded-full bg-brand-success/80" />
+          <div className="ml-4 flex items-center gap-2 px-3 py-1 bg-brand-surface rounded text-[10px] font-mono text-brand-text-dim border border-brand-line">
+            <FileCode className="w-3 h-3" /> package.json
           </div>
-        </motion.div>
-      </div>
+        </div>
 
-      {/* Floating Data Nodes */}
-      {[...Array(12)].map((_, i) => (
-        <motion.div
-          key={i}
-          animate={{ 
-            y: [0, -40, 0],
-            x: [0, (i % 2 === 0 ? 10 : -10), 0],
-            opacity: [0.1, 0.8, 0.1]
-          }}
-          transition={{ duration: 4 + Math.random() * 4, repeat: Infinity, delay: i * 0.3 }}
-          className="absolute font-mono text-[9px] font-bold text-brand-accent/60"
-          style={{ 
-            top: `${15 + Math.random() * 70}%`, 
-            left: `${15 + Math.random() * 70}%` 
-          }}
-        >
-          {i % 2 === 0 ? 'SYNC' : 'AUTH'}
-        </motion.div>
-      ))}
+        {/* Code Content */}
+        <div className="p-6 flex-1 text-[11px] sm:text-xs flex flex-col gap-3 relative overflow-hidden">
+          
+          {/* Scanning Laser */}
+          <motion.div
+            animate={{ top: ["-20%", "120%", "-20%"] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute left-0 right-0 h-32 bg-gradient-to-b from-transparent via-brand-accent/20 to-transparent z-20 border-b-2 border-brand-accent shadow-[0_4px_15px_rgba(var(--accent-rgb),0.3)] pointer-events-none"
+          />
+
+          <code className="text-brand-text-dim">{"{"}</code>
+          <code className="text-brand-text-main pl-4">"dependencies" : {"{"}</code>
+          
+          <code className="pl-8 text-brand-text-main flex items-center justify-between">
+            <span>"react" : <span className="text-brand-success">"^18.2.0"</span>,</span>
+          </code>
+          
+          <code className="pl-8 text-brand-text-main flex items-center justify-between">
+            <span>"framer-motion" : <span className="text-brand-success">"^11.0.0"</span>,</span>
+          </code>
+
+          {/* Malicious Dep that gets caught */}
+          <motion.div 
+            animate={{ 
+              backgroundColor: ["rgba(0,0,0,0)", "rgba(225, 29, 72, 0.1)", "rgba(0,0,0,0)"],
+              color: ["var(--text-main)", "var(--warning)", "var(--text-main)"]
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            className="pl-8 flex items-center justify-between py-1 -mx-2 px-2 rounded-md transition-colors"
+          >
+            <span>
+              "react-dom-core" : <span className="text-brand-warning">"latest"</span>
+            </span>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              className="flex items-center gap-1 text-[9px] bg-brand-warning/10 text-brand-warning px-2 py-0.5 rounded-sm border border-brand-warning/30"
+            >
+              <BrandLogo className="w-3 h-3" /> BLOCKED
+            </motion.div>
+          </motion.div>
+
+          <code className="pl-8 text-brand-text-main">
+            "axios" : <span className="text-brand-success">"^1.6.0"</span>
+          </code>
+
+          <code className="text-brand-text-main pl-4">{"}"}</code>
+          <code className="text-brand-text-dim">{"}"}</code>
+        </div>
+      </motion.div>
+
+      {/* Background Decorative Data Flow */}
+      <div className="absolute inset-0 -z-10 flex items-center justify-center">
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+          className="w-[120%] h-[120%] border-[0.5px] border-brand-line rounded-full border-dashed opacity-50"
+        />
+        <motion.div 
+          animate={{ rotate: -360 }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          className="w-[100%] h-[100%] absolute border-[0.5px] border-brand-accent/20 rounded-full"
+        />
+        {/* Soft Center Glow */}
+        <div className="absolute inset-0 bg-brand-accent/5 rounded-full blur-[80px]" />
+      </div>
     </div>
   );
 }
@@ -504,7 +530,7 @@ function DashboardView({ results, loading, scannedAt, runScan, theme, toggleThem
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-brand-accent flex items-center justify-center text-brand-bg">
-              <ShieldAlert className="w-4 h-4" />
+              <BrandLogo className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col">
               <span className="font-sans font-bold text-sm tracking-tight leading-none mb-1">Dependency Firewall <span className="text-brand-text-dim font-light">Console</span></span>
@@ -658,7 +684,7 @@ function DashboardView({ results, loading, scannedAt, runScan, theme, toggleThem
                       className="h-full flex flex-col items-center justify-center opacity-60 text-center"
                     >
                       <div className="w-16 h-16 rounded-2xl bg-brand-success/10 flex items-center justify-center text-brand-success mb-6 mx-auto">
-                        <ShieldCheck className="w-8 h-8" />
+                        <BrandLogo className="w-8 h-8" strokeWidth={1.5} />
                       </div>
                       <h3 className="font-serif italic text-2xl mb-2 text-brand-text-main">No artifacts detected.</h3>
                       <p className="text-brand-text-dim max-w-xs mx-auto text-[12px] leading-relaxed">The analysis engine completed the sweep with zero significant violations. Your codebase appears verified.</p>
