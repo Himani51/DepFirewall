@@ -40,7 +40,7 @@ The Dashboard provides a beautiful, high-density HUD to parse all detected viola
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/depfirewall.git
+   git clone https://github.com/Himani51/depfirewall.git
    cd depfirewall
    ```
 2. **Install dependencies:**
